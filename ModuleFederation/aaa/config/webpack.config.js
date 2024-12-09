@@ -573,7 +573,15 @@ module.exports = function (webpackEnv) {
         },
         remotes: {
           'bbb-app': 'bbb_app@http://localhost:3001/bbbEntry.js',
-        }
+        },
+        shared: {
+          react: {
+            singleton: true,
+          },
+          'react-dom': {
+            singleton: true,
+          }
+        },
       }),
       // Generates an `index.html` file with the <script> injected.
       new HtmlWebpackPlugin(

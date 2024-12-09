@@ -575,7 +575,15 @@ module.exports = function (webpackEnv) {
         // 引入的时候使用 remotes 注册，这段配置就是注册了一个运行时的 Module，名字叫 aaa-app，它的值来自 http://localhost:3001/aaaEntry.js 这个文件里的 aaa_app 变量。
         remotes: {
           'aaa-app': 'aaa_app@http://localhost:3000/aaaEntry.js'
-        }
+        },
+        shared: {
+          react: {
+            singleton: true,
+          },
+          'react-dom': {
+            singleton: true,
+          }
+        },
       }),
 
       // Generates an `index.html` file with the <script> injected.
