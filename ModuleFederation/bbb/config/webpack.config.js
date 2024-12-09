@@ -27,6 +27,7 @@ const ForkTsCheckerWebpackPlugin =
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash');
+const { ModuleFederationPlugin } = require('webpack').container;
 
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
@@ -563,6 +564,13 @@ module.exports = function (webpackEnv) {
       ].filter(Boolean),
     },
     plugins: [
+      // 引入的时候使用 remotes 注册，这段配置就是注册了一个运行时的 Module，名字叫 aaa-app，它的值来自 http://localhost:3001/aaaEntry.js 这个文件里的 aaa_app 变量。
+      new ModuleFederationPlugin({
+        remotes: {
+          'aaa-app': 'aaa_app@http://localhost:3000/aaaEntry.js'
+        }
+      }),
+
       // Generates an `index.html` file with the <script> injected.
       new HtmlWebpackPlugin(
         Object.assign(
