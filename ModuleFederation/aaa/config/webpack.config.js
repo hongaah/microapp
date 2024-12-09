@@ -570,6 +570,9 @@ module.exports = function (webpackEnv) {
         filename: 'aaaEntry.js',
         exposes: {
           './Button': './src/Button/index.jsx',
+        },
+        remotes: {
+          'bbb-app': 'bbb_app@http://localhost:3001/bbbEntry.js',
         }
       }),
       // Generates an `index.html` file with the <script> injected.

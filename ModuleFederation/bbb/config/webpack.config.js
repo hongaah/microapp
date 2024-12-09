@@ -220,7 +220,8 @@ module.exports = function (webpackEnv) {
       // webpack uses `publicPath` to determine where the app is being served from.
       // It requires a trailing slash, or the file assets will get an incorrect path.
       // We inferred the "public path" (such as / or /my-project) from homepage.
-      publicPath: paths.publicUrlOrPath,
+      // publicPath: paths.publicUrlOrPath,
+      publicPath: 'http://localhost:3001/',
       // Point sourcemap entries to original disk location (format as URL on Windows)
       devtoolModuleFilenameTemplate: isEnvProduction
         ? info =>
@@ -564,8 +565,14 @@ module.exports = function (webpackEnv) {
       ].filter(Boolean),
     },
     plugins: [
-      // 引入的时候使用 remotes 注册，这段配置就是注册了一个运行时的 Module，名字叫 aaa-app，它的值来自 http://localhost:3001/aaaEntry.js 这个文件里的 aaa_app 变量。
       new ModuleFederationPlugin({
+        name: 'bbb_app',
+        filename: 'bbbEntry.js',
+        // 导出 bbb 应用的 link 组件
+        exposes: {
+          './Link': './src/Link/index.jsx'
+        },
+        // 引入的时候使用 remotes 注册，这段配置就是注册了一个运行时的 Module，名字叫 aaa-app，它的值来自 http://localhost:3001/aaaEntry.js 这个文件里的 aaa_app 变量。
         remotes: {
           'aaa-app': 'aaa_app@http://localhost:3000/aaaEntry.js'
         }

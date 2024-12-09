@@ -1,13 +1,15 @@
 # 模块联邦 Module Federation
 
-Module Federation 能够把一个应用的一些模块导出，供别的应用异步引入这些模块。
+Module Federation 是 webpack5 提供的用于应用之间共享模块的机制，只要用 ModuleFederationPlugin 声明 exposes 的模块，另一个应用里用 ModuleFederationPlugin 声明 remotes 导入的模块，就可以直接用别的应用的模块了。这就是它为什么会叫模块联邦。
 
-方式就是一个应用比如 aaa 通过 ModeleFederationPlugin 声明 exposes 的模块名字和路径，另一个应用 bbb 通过 remotes 声明用到的一些模块来自于哪个文件的哪个变量。
-这样当用到这个模块的时候，就回去异步请求对应的 url，取出其中的变量值。
-这里要特别注意导出模块的应用 aaa 需要固定 publicPath，不然加载文件的路径会有问题。
-我们完成了应用 aaa 导出 Button 在另一个应用 bbb 里用，这个是单向的。
+除了业务模块外，库模块也可以共享。只不过要注意这些模块都是异步加载的，所以要用 import()来异步引入。单独引入异步组件需要用 React.lazy(() => import('xx/yy')) 的形式，或者把整个应用用 import() 来异步加载。
+
+此外，还要注意要固定 output.publicPath，不然引入模块的时候路径会有问题。
+
+Module Federation 是天生的模块级微前端，它和 qiankun 一样，都是用到另一个应用的代码时，异步去某个地址下载它的代码，然后跑起来，只不过一个是应用级，一个是模块级。
 
 ```js :webpack.config.js aaa 的 webpack 配置
+// visit aaa: localhost:3000
 const { ModuleFederationPlugin } = require('webpack').container;
 
 module.exports = function () {
@@ -27,6 +29,9 @@ module.exports = function () {
         filename: 'aaaEntry.js',
         exposes: {
           './Button': './src/Button/index.jsx',
+        },
+        remotes: {
+          'bbb-app': 'bbb_app@http://localhost:3001/bbbEntry.js',
         }
       }),
     ],
@@ -35,14 +40,22 @@ module.exports = function () {
 ```
 
 ```js :webpack.config.js bbb 的 webpack 配置
+// visit bbb: localhost:3001
 // 引入 aaa 的 Button 组件
 const { ModuleFederationPlugin } = require('webpack').container;
 
 module.exports = function () {
   return {
+    publicPath: 'http://localhost:3001/',
     plugins: [
-      // 引入的时候使用 remotes 注册，这段配置就是注册了一个运行时的 Module，名字叫 aaa-app，它的值来自 http://localhost:3000/aaaEntry.js 这个文件里的 aaa_app 变量。
       new ModuleFederationPlugin({
+        name: 'bbb_app',
+        filename: 'bbbEntry.js',
+        // 导出 bbb 应用的 link 组件
+        exposes: {
+          './Link': './src/Link/index.jsx'
+        },
+        // 引入的时候使用 remotes 注册，这段配置就是注册了一个运行时的 Module，名字叫 aaa-app，它的值来自 http://localhost:3000/aaaEntry.js 这个文件里的 aaa_app 变量。
         remotes: {
           'aaa-app': 'aaa_app@http://localhost:3000/aaaEntry.js'
         }
